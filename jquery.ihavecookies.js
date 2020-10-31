@@ -183,6 +183,12 @@
         return JSON.parse(preferences);
     };
 
+    // Method to check if user cookie consent is configured (cookieControl cookie exists)
+    $.fn.ihavecookies.configured = function() {
+        const control = getCookie('cookieControl');
+        return control !== false;
+    }
+
     // Method to check if user cookie preference exists
     $.fn.ihavecookies.preference = function(cookieTypeValue) {
         const control = getCookie('cookieControl');
