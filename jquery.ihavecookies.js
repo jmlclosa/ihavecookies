@@ -10,19 +10,19 @@
 (function($) {
 
     /*
-    |--------------------------------------------------------------------------
-    | Cookie Message
-    |--------------------------------------------------------------------------
-    |
-    | Displays the cookie message on first visit or 30 days after their
-    | last visit.
-    |
-    | @param event - 'reinit' to reopen the cookie message
-    |
-    */
+        |--------------------------------------------------------------------------
+        | Cookie Message
+        |--------------------------------------------------------------------------
+        |
+        | Displays the cookie message on first visit or 30 days after their
+        | last visit.
+        |
+        | @param event - 'reinit' to reopen the cookie message
+        |
+        */
     $.fn.ihavecookies = function(options, event) {
 
-        const $element = $(this);
+        var $element = $(this);
 
         // Set defaults
         const settings = $.extend({
@@ -55,9 +55,11 @@
             moreInfoLabel: 'More information',
             acceptBtnLabel: 'Accept Cookies',
             advancedBtnLabel: 'Customise Cookies',
+            advancedSaveBtnLabel: 'Save config',
             cookieTypesTitle: 'Select cookies to accept',
             fixedCookieTypeLabel: 'Necessary',
             fixedCookieTypeDesc: 'These are cookies that are essential for the website to work correctly.',
+            showAsModal: false,
             onAccept: function () {
             },
             uncheckBoxes: false
@@ -94,20 +96,27 @@
 
             // Display cookie message on page
             const cookieMessage =
-                '<div id="gdpr-cookie-message">' +
+                '<div id="gdpr-cookie-message" class="' + (settings.showAsModal ? 'modal' : 'bottom-right') + '">' +
                     '<h4>' + settings.title + '</h4>' +
                     '<p>' + settings.message + ' <a href="' + settings.link + '">' + settings.moreInfoLabel + '</a></p>' +
                     '<div id="gdpr-cookie-types" style="display:none;">' +
                         '<h5>' + settings.cookieTypesTitle + '</h5>' +
                         '<ul>' + cookieTypes + '</ul>' +
                     '</div>' +
-                    '<p>' +
+                    '<p class="gdpr-cookie-buttons">' +
                         '<button id="gdpr-cookie-accept" type="button">' + settings.acceptBtnLabel + '</button>' +
                         '<button id="gdpr-cookie-advanced" type="button">' + settings.advancedBtnLabel + '</button>' +
                     '</p>' +
                 '</div>';
             setTimeout(function(){
-                $($element).append(cookieMessage);
+                if (! settings.showAsModal) {
+                    $($element).append(cookieMessage);
+                } else {
+                    const cookieMessageOverlay = $('<div id="gdpr-cookie-message-overlay">');
+                    cookieMessageOverlay.append(cookieMessage);
+                    $($element).append(cookieMessageOverlay);
+                    $element = cookieMessageOverlay;
+                }
                 $('#gdpr-cookie-message').hide().fadeIn('slow', function(){
                     // If reinit'ing, open the advanced section of message
                     // and re-check all previously selected options.
@@ -123,8 +132,9 @@
             // When accept button is clicked drop cookie
             const body = $('body');
             body.on('click','#gdpr-cookie-accept', function(){
-                // Set cookie
-                dropCookie(true, settings.expires);
+                setCookie('cookieControl', true, settings.expires);
+
+                hideGdprCookieMessage(settings.showAsModal);
 
                 // If 'data-auto' is set to ON, tick all checkboxes because
                 // the user hasn't clicked the customise cookies button
@@ -148,15 +158,13 @@
                 // select the cookies they want to accept.
                 $('input[name="gdpr[]"]:not(:disabled)').attr('data-auto', 'off').prop('checked', false);
                 $('#gdpr-cookie-types').slideDown('fast', function(){
-                    $('#gdpr-cookie-advanced').prop('disabled', true);
+                    $('#gdpr-cookie-advanced').hide();
+                    $('#gdpr-cookie-accept').html(settings.advancedSaveBtnLabel);
                 });
             });
 
         } else {
-            var cookieVal = true;
-            if (myCookie == 'false') {
-                cookieVal = false;
-            }
+            let cookieVal = myCookie !== 'false';
             dropCookie(cookieVal, settings.expires);
         }
 
@@ -166,6 +174,18 @@
         }
 
     };
+
+    function hideGdprCookieMessage(showingAsModal) {
+        if (!showingAsModal) {
+            $('#gdpr-cookie-message').fadeOut('fast', function () {
+                $(this).remove();
+            });
+        } else {
+            $('#gdpr-cookie-message-overlay').fadeOut('fast', function () {
+                $(this).remove();
+            });
+        }
+    }
 
     // Method to get cookie value
     $.fn.ihavecookies.cookie = function() {
@@ -197,9 +217,6 @@
     */
     var dropCookie = function(value, expiryDays) {
         setCookie('cookieControl', value, expiryDays);
-        $('#gdpr-cookie-message').fadeOut('fast', function() {
-            $(this).remove();
-        });
     };
 
     /*
