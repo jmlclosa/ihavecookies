@@ -98,8 +98,8 @@
                         '<ul>' + cookieTypes + '</ul>' +
                     '</div>' +
                     '<p class="gdpr-cookie-buttons">' +
-                        '<button id="gdpr-cookie-accept" type="button">' + settings.acceptBtnLabel + '</button>' +
                         '<button id="gdpr-cookie-advanced" type="button">' + settings.advancedBtnLabel + '</button>' +
+                        '<button id="gdpr-cookie-accept" type="button">' + settings.acceptBtnLabel + '</button>' +
                     '</p>' +
                 '</div>';
             setTimeout(function(){
